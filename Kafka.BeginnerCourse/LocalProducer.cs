@@ -31,25 +31,32 @@ namespace Kafka.BeginnerCourse
 
         public async Task Produce(List<(string key, string value)> messages)
         {
-            using var producer = new ProducerBuilder<string, string>(config).Build();
-
-            foreach (var message in messages)
+            try
             {
-                try
-                {
-                    var result = await producer.ProduceAsync(topic, new Message<string, string> { Key = message.key, Value = message.value });
+                using var producer = new ProducerBuilder<string, string>(config).Build();
 
-                    logger.LogInformation("\n Received new metadata. \n" +
-                                        "Topic: " + result.Topic + "\n" +
-                                        "Partition: " + result.Partition + "\n" +
-                                        "Offset: " + result.Offset + "\n" +
-                                        "Timestamp: " + result.Timestamp.UtcDateTime + "\n");
-                }
-                catch (Exception e)
+                foreach (var message in messages)
                 {
-                    logger.LogError("Error while producing", e);
+
+                    var result = await producer.ProduceAsync(topic,
+                        new Message<string, string> { Key = message.key, Value = message.value });
+
+                    logger.LogInformation("\nReceived new metadata. \n" +
+                                          "Topic: " + result.Topic + "\n" +
+                                          "Partition: " + result.Partition + "\n" +
+                                          "Offset: " + result.Offset + "\n" +
+                                          "Timestamp: " + result.Timestamp.UtcDateTime + "\n");
                 }
             }
+            catch (Exception e)
+            {
+                logger.LogError($"Error while producing: {e.Message}");
+            }
         }
+    }
+
+    public interface ILocalConsumer
+    {
+        Task Consume(bool cancelled);
     }
 }
