@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
@@ -7,20 +6,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Kafka.BeginnerCourse
 {
-    public class LocalConsumer : ILocalConsumer
+    public class LocalConsumerAssignAndSeek : ILocalConsumerAssignAndSeek
     {
         private readonly ILogger logger;
         private readonly ConsumerConfig config;
-        private readonly List<string> topics = new List<string> { "first_topic" };
+        private readonly string topic = "first_topic";
 
-        public LocalConsumer(ILogger<LocalConsumer> logger)
+        public LocalConsumerAssignAndSeek(ILogger<LocalConsumerAssignAndSeek> logger)
         {
             this.logger = logger;
 
             config = new ConsumerConfig
             {
                 BootstrapServers = "127.0.0.1:9092",
-                GroupId = "my_first_application",
+                GroupId = "my_second_application",
                 AutoOffsetReset = AutoOffsetReset.Earliest
             };
         }
@@ -42,17 +41,32 @@ namespace Kafka.BeginnerCourse
                     })
                     .Build())
                 {
-                    consumer.Subscribe(topics);
+                    //assign
+                    var partitionToReadFrom = new TopicPartition(topic, 0);
+                    var offsetToReadFrom = new TopicPartitionOffset(partitionToReadFrom, 15);
+                    consumer.Assign(partitionToReadFrom);
 
-                    while (true)
+                    //seek
+                    consumer.Seek(offsetToReadFrom);
+
+                    var numberOfMessagesToRead = 5;
+                    var keepOnReading = true;
+                    var numberOfMessagesReadSoFar = 0;
+
+                    while (keepOnReading)
                     {
+                        //now the consumer will only read the messages from partition 0
                         var consumeResult = consumer.Consume(CancellationToken.None);
+                        numberOfMessagesReadSoFar++;
 
                         // handle consumed message.
                         logger.LogInformation("\nConsumed data: \n" +
                                               "Key: " + consumeResult.Message.Key + ", Value: " + consumeResult.Message.Value + "\n" +
                                               "Partition: " + consumeResult.Partition + "\n" +
                                               "Offset: " + consumeResult.Offset + "\n");
+                        
+                        if (numberOfMessagesReadSoFar < numberOfMessagesToRead) continue;
+                        keepOnReading = false;
                     }
 
                     consumer.Close();
@@ -63,5 +77,9 @@ namespace Kafka.BeginnerCourse
                 logger.LogError($"Error while consuming: {e.Message}");
             }
         }
+    }
+    public interface ILocalConsumerAssignAndSeek
+    {
+        Task Consume();
     }
 }

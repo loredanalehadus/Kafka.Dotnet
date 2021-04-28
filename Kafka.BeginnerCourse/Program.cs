@@ -27,9 +27,13 @@ namespace Kafka.BeginnerCourse
             var producer = provider.GetRequiredService<ILocalProducer>();
             await producer.Produce(Messages);
 
+            //create kafka consumer with assign and seek
+            var consumerAssignAndSeek = provider.GetRequiredService<ILocalConsumerAssignAndSeek>();
+            await consumerAssignAndSeek.Consume();
+
             //create kafka consumer
             var consumer = provider.GetRequiredService<ILocalConsumer>();
-            await consumer.Consume(false);
+            await consumer.Consume();
         }
 
         private static IHostBuilder
@@ -44,7 +48,8 @@ namespace Kafka.BeginnerCourse
                 .ConfigureServices((_, services) =>
                     services
                         .AddSingleton<ILocalProducer, LocalProducer>()
-                        .AddSingleton<ILocalConsumer, LocalConsumer>());
+                        .AddSingleton<ILocalConsumer, LocalConsumer>()
+                        .AddSingleton<ILocalConsumerAssignAndSeek, LocalConsumerAssignAndSeek>());
         }
     }
 }

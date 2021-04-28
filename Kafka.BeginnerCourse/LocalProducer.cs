@@ -41,6 +41,9 @@ namespace Kafka.BeginnerCourse
                     var result = await producer.ProduceAsync(topic,
                         new Message<string, string> { Key = message.key, Value = message.value });
 
+                    //by sending the key you guarantee that the same key always go to the same partition
+                    logger.LogInformation($"Key: {message.key}");
+
                     logger.LogInformation("\nReceived new metadata. \n" +
                                           "Topic: " + result.Topic + "\n" +
                                           "Partition: " + result.Partition + "\n" +
@@ -57,6 +60,6 @@ namespace Kafka.BeginnerCourse
 
     public interface ILocalConsumer
     {
-        Task Consume(bool cancelled);
+        Task Consume();
     }
 }
