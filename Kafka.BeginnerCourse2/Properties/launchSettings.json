@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Kafka.BeginnerCourse2": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "Env": "Development"
+      }
+    }
+  }
+}
