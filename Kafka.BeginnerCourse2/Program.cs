@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Kafka.BeginnerCourse2.Clients;
 using Kafka.BeginnerCourse2.Configuration;
 using Kafka.BeginnerCourse2.Consumers;
 using Kafka.BeginnerCourse2.Producers;
@@ -29,12 +30,12 @@ namespace Kafka.BeginnerCourse2
             var provider = serviceScope.ServiceProvider;
 
             //create a kafka producer
-            var producer = provider.GetRequiredService<IIdempotentProducer>();
-            await producer.Produce(Messages);
+            //var producer = provider.GetRequiredService<IIdempotentProducer>();
+            //await producer.Produce(Messages);
 
             //create kafka consumer
-            //var consumer = provider.GetRequiredService<IConsumer>();
-            //consumer.Consume();
+            var consumer = provider.GetRequiredService<IKafkaConsumer>();
+            await consumer.Consume();
 
             Console.WriteLine("Hello World!");
         }
@@ -54,6 +55,8 @@ namespace Kafka.BeginnerCourse2
                 })
                 .ConfigureServices((context, services) =>
                 {
+                    services.Configure<ElasticClientOptions>(context.Configuration.GetSection(nameof(ElasticClientOptions)));
+                    services.Configure<KafkaOptions>(context.Configuration.GetSection(nameof(KafkaOptions)));
                     services.Configure<ProducerOptions>(context.Configuration.GetSection(nameof(ProducerOptions)));
                     services.Configure<SchemaRegistryConfigOptions>(
                         context.Configuration.GetSection(nameof(SchemaRegistryConfigOptions)));
@@ -61,7 +64,8 @@ namespace Kafka.BeginnerCourse2
                     services
                         .AddSingleton<IProducer, Producer>()
                         .AddSingleton<IIdempotentProducer, IdempotentProducer>()
-                        /*.AddSingleton<IConsumer, Consumer>()*/;
+                        .AddSingleton<IKafkaConsumer, KafkaConsumer>()
+                        .AddSingleton<IElasticSearchClient, ElasticSearchClient>();
                 });
         }
     }

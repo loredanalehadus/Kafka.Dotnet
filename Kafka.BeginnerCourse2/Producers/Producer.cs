@@ -19,24 +19,25 @@ namespace Kafka.BeginnerCourse2.Producers
     {
         private readonly ILogger logger;
         private readonly ProducerConfig config;
-        private readonly ProducerOptions producerOptions;
+        private readonly KafkaOptions kafkaOptions;
         private readonly SchemaRegistryConfigOptions configOptions;
 
         public Producer(ILogger<Producer> logger,
+                        IOptions<KafkaOptions> kafkaOptions,
                         IOptions<ProducerOptions> producerOptions,
                         IOptions<SchemaRegistryConfigOptions> schemaRegistryOptions)
         {
             this.logger = logger;
-            this.producerOptions = producerOptions.Value;
+            this.kafkaOptions = kafkaOptions.Value;
             configOptions = schemaRegistryOptions.Value;
 
             config = new ProducerConfig
             {
-                BootstrapServers = producerOptions.Value.BootstrapServers,
+                BootstrapServers = kafkaOptions.Value.BootstrapServers,
                 SaslMechanism = SaslMechanism.Plain,
                 SecurityProtocol = SecurityProtocol.SaslSsl,
-                SaslUsername = producerOptions.Value.Username,
-                SaslPassword = producerOptions.Value.Password,
+                SaslUsername = configOptions.Username,
+                SaslPassword = configOptions.Password,
                 SslCaLocation = producerOptions.Value.SslCaLocation,
                 ClientId = Dns.GetHostName(),
             };
@@ -59,7 +60,7 @@ namespace Kafka.BeginnerCourse2.Producers
 
                     foreach (var message in messages)
                     {
-                        var result = await producer.ProduceAsync(producerOptions.Topic,
+                        var result = await producer.ProduceAsync(kafkaOptions.Topic,
                             new Message<string, string> { Key = message.key, Value = message.value });
 
                         //by sending the key you guarantee that the same key always go to the same partition

@@ -5,10 +5,6 @@ namespace Kafka.BeginnerCourse2.Configuration
 {
     public class ProducerOptions
     {
-        public string BootstrapServers { get; set; }
-        public string Topic { get; set; }
-        public string Username { get; set; }
-        public string Password { get; set; }
         public string SslCaLocation { get; set; }
 
         public SecurityProtocol SecurityProtocol => SecurityProtocol.SaslSsl;
